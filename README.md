@@ -1,9 +1,3 @@
-## DEV NOTES
-
-- Why not use context hoooks?
-
-We've severely underestimated the scale of the application and doesn't have enough time to refactor. This applies to a lot "why-not-use" questions in the application.
-
 ## Tech Stack
 
 - NextJS
