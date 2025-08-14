@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String                  @id @default(uuid())
+  name                String
+  email               String                  @unique
+  image               String?
+  course              String                  @default("")
+  biography           String                  @default("")
+  department          Department[]
+  adminOf             Department[]            @relation("admin role")
+  posts               Post[]                  @relation("posted by")
+  likedPosts          Post[]
+  likedDepartmentPost DepartmentPost[]
+  comments            PostComment[]           @relation("commented by")
+  departmentComments  DepartmentPostComment[] @relation("commented by")
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+   // New field for admin role
+  isAdmin             Boolean                 @default(false)
+}
+
+model Post {
+  id         String        @id @default(uuid())
+  content    String?
+  media      PostMedia[]
+  postedBy   User          @relation("posted by", fields: [postedById], references: [id], onDelete: Cascade)
+  postedById String
+  likedBy    User[]
+  comments   PostComment[] @relation("user comment")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model Department {
+  id              String           @id @default(uuid())
+  name            String           @unique
+  image           String?          @db.MediumText
+  description     String?          @default("")
+  members         User[]
+  admin           User             @relation("admin role", fields: [adminId], references: [id], onDelete: Cascade)
+  adminId         String
+  departmentPosts DepartmentPost[] @relation("dept_post")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+}
+
+model DepartmentPost {
+  id           String                  @id @default(uuid())
+  content      String?
+  media        DepartmentPostMedia[]
+  postedWith   Department              @relation("dept_post", fields: [postedWithId], references: [id], onDelete: Cascade)
+  postedWithId String
+  likedBy      User[]
+  comments     DepartmentPostComment[] @relation("user comment")
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+}
+
+model PostMedia {
+  id         String  @id @default(uuid())
+  mediaUrl   String? @db.MediumText
+  mediaFor   Post?   @relation(fields: [mediaForId], references: [id])
+  mediaForId String?
+}
+
+model DepartmentPostMedia {
+  id         String          @id @default(uuid())
+  mediaUrl   String          @db.MediumText
+  mediaFor   DepartmentPost? @relation(fields: [mediaForId], references: [id])
+  mediaForId String?
+}
+
+model PostComment {
+  id            String @id @default(uuid())
+  comment       String
+  media         String
+  commentedBy   User   @relation("commented by", fields: [commentedById], references: [id], onDelete: Cascade)
+  commentedById String
+  commentFor    Post   @relation("user comment", fields: [commentForId], references: [id], onDelete: Cascade)
+  commentForId  String
+}
+
+model DepartmentPostComment {
+  id            String         @id @default(uuid())
+  comment       String
+  media         String?
+  commentedBy   User           @relation("commented by", fields: [commentedById], references: [id], onDelete: Cascade)
+  commentedById String
+  commentFor    DepartmentPost @relation("user comment", fields: [commentForId], references: [id], onDelete: Cascade)
+  commentForId  String
+}
